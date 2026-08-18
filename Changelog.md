@@ -9,9 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Single-Branch Deployment**: Refactored deployment strategy to use a single `master` branch with path-based variant detection. The application now deploys to three paths from one branch: `/dialogue-lab-v2/` (default/simulation), `/dialogue-lab-v2/practice-edition/` (practice), and `/dialogue-lab-v2/simulation-lab/` (simulation).
-- **Path-Based Routing**: Updated variant detection to use URL path patterns for production (`/dialogue-lab-v2/practice-edition/`, `/dialogue-lab-v2/simulation-lab/`) and hash parameters for local development (`#practice`, `#simulation`).
-- **Relative Path Resolution**: Added separate `index.html` files for each deployment path with relative script paths to ensure correct asset resolution across different deployment depths.
-- **Workflow Simplification**: Updated GitHub Actions workflow to deploy from `master` branch only, creating all three path variants (root, practice-edition, simulation-lab) during the build process.
+- **Path-Based Routing**: Updated variant detection to use URL path patterns for production (`/practice-edition/`, `/simulation-lab/`) and hash parameters for local development (`#practice`, `#simulation`).
+- **Single HTML File with 404.html**: Replaced multiple subdirectory index.html files with a single `404.html` that GitHub Pages automatically serves for all non-existent paths, combined with path-based variant detection in JavaScript.
+- **Workflow Simplification**: Updated GitHub Actions workflow to deploy from `master` branch only with just index.html and 404.html.
 
 ---
 

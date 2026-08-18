@@ -22,20 +22,11 @@ jobs:
         run: |
           mkdir -p public
           cp index.html public/
+          cp 404.html public/
           cp -r src public/
           cp -r scenarios public/
           cp -r prompts public/
           touch public/.nojekyll
-
-      - name: Create practice-edition directory
-        run: |
-          mkdir -p public/practice-edition
-          cp practice-edition/index.html public/practice-edition/
-
-      - name: Create simulation-lab directory
-        run: |
-          mkdir -p public/simulation-lab
-          cp simulation-lab/index.html public/simulation-lab/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
