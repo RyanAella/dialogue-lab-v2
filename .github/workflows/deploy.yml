@@ -1,12 +1,10 @@
-name: Multi-Branch Deployment to GitHub Pages
+name: Single-Branch Multi-Path Deployment to GitHub Pages
 
-# Trigger only for the two product branches
+# Trigger only for the master branch
 on:
   push:
     branches:
-      - main
-      - simulation-lab
-      - practice-edition
+      - master
   workflow_dispatch:
 
 permissions:
@@ -29,20 +27,19 @@ jobs:
           cp -r prompts public/
           touch public/.nojekyll
 
-      - name: Determine Deployment Path
-        id: subpath
+      - name: Create practice-edition directory
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "SUB_PATH=" >> $GITHUB_OUTPUT  # Leerer Pfad = Root
-          else
-            CLEAN_NAME=$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-            echo "SUB_PATH=$CLEAN_NAME" >> $GITHUB_OUTPUT
-          fi
+          mkdir -p public/practice-edition
+          cp practice-edition/index.html public/practice-edition/
+
+      - name: Create simulation-lab directory
+        run: |
+          mkdir -p public/simulation-lab
+          cp simulation-lab/index.html public/simulation-lab/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: public
-          target-folder: ${{ steps.subpath.outputs.SUB_PATH }}
           branch: gh-pages
-          clean: false
+          clean: true

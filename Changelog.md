@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [0.32.3] - 2026-08-18
+
+### Changed
+- **Single-Branch Deployment**: Refactored deployment strategy to use a single `master` branch with path-based variant detection. The application now deploys to three paths from one branch: `/dialogue-lab-v2/` (default/simulation), `/dialogue-lab-v2/practice-edition/` (practice), and `/dialogue-lab-v2/simulation-lab/` (simulation).
+- **Path-Based Routing**: Updated variant detection to use URL path patterns for production (`/dialogue-lab-v2/practice-edition/`, `/dialogue-lab-v2/simulation-lab/`) and hash parameters for local development (`#practice`, `#simulation`).
+- **Relative Path Resolution**: Added separate `index.html` files for each deployment path with relative script paths to ensure correct asset resolution across different deployment depths.
+- **Workflow Simplification**: Updated GitHub Actions workflow to deploy from `master` branch only, creating all three path variants (root, practice-edition, simulation-lab) during the build process.
+
+---
+
 ## [0.32.2] - 2026-08-18
 
 ### Changed
