@@ -15,19 +15,19 @@
 export const VARIANT_CONFIGS = {
   practice: {
     hash: 'practice',
-    pathPattern: '/dialogue-lab-v2/practice-edition/',
+    pathPattern: '/practice-edition',
     exercisesFilter: (ex) => ex.type === "TRANSFORMATION",
     modes: ["transformation"]
   },
   simulation: {
     hash: 'simulation',
-    pathPattern: '/dialogue-lab-v2/simulation-lab/',
+    pathPattern: '/simulation-lab',
     exercisesFilter: (ex) => ex.type === "SIMULATION",
     modes: ["simulation", "roleplay"]
   },
   default: {
     hash: '',
-    pathPattern: '/dialogue-lab-v2/',
+    pathPattern: '',
     exercisesFilter: null,
     modes: ["simulation", "transformation"]
   }
@@ -48,10 +48,19 @@ export const CURRENT_VARIANT = (() => {
 
   // 2. Check path (for production on GitHub Pages)
   const path = window.location.pathname;
+  
   for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
-    if (path.includes(config.pathPattern)) return { ...config, id: key };
+    if (!config.pathPattern) {
+      // Default variant: matches root path or any path without specific pattern
+      continue;
+    }
+    // Check if path contains the pattern (e.g., /practice-edition or /practice-edition/)
+    if (path.includes(config.pathPattern)) {
+      return { ...config, id: key };
+    }
   }
 
+  // If no pattern matched, return default
   return VARIANT_CONFIGS.default;
 })();
 
