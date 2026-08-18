@@ -143,13 +143,14 @@ export async function switchToTransformationMode(exerciseId = "ich_botschaften_b
 
 /**
  * Initializes the current mode based on STATE.currentMode or variant modes.
- * If variant has only one mode, it's selected automatically.
+ * If variant has specific modes, uses the first one as default.
+ * This ensures each variant starts with its appropriate mode.
  *
  * @async
  */
 export async function initializeCurrentMode() {
-  // Set STATE.currentMode based on variant first if variant has only one mode
-  if (CURRENT_VARIANT.modes && CURRENT_VARIANT.modes.length === 1) {
+  // Set STATE.currentMode based on variant's first mode if variant defines modes
+  if (CURRENT_VARIANT.modes && CURRENT_VARIANT.modes.length > 0) {
     STATE.currentMode = CURRENT_VARIANT.modes[0];
   }
   
