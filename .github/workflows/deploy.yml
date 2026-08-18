@@ -20,17 +20,20 @@ jobs:
 
       - name: Create Public Artifact Folder
         run: |
-          mkdir -p public
-          cp index.html public/
-          cp 404.html public/
-          cp -r src public/
-          cp -r scenarios public/
-          cp -r prompts public/
-          touch public/.nojekyll
+          mkdir -p public/dialogue-lab-v2
+          cp index.html public/dialogue-lab-v2/
+          cp -r src public/dialogue-lab-v2/
+          cp -r scenarios public/dialogue-lab-v2/
+          cp -r prompts public/dialogue-lab-v2/
+          touch public/dialogue-lab-v2/.nojekyll
+          
+      - name: Create root 404.html for GitHub Pages fallback
+        run: |
+          cp 404.html public/404.html
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: public
           branch: gh-pages
-          clean: true0
+          clean: false0

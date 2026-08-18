@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.32.3] - 2026-08-18
 
 ### Changed
-- **Single-Branch Deployment**: Refactored deployment strategy to use a single `master` branch with path-based variant detection. The application now deploys to three paths from one branch: `/dialogue-lab-v2/` (default/simulation), `/dialogue-lab-v2/practice-edition/` (practice), and `/dialogue-lab-v2/simulation-lab/` (simulation).
-- **Path-Based Routing**: Updated variant detection to use URL path patterns for production (`/practice-edition/`, `/simulation-lab/`) and hash parameters for local development (`#practice`, `#simulation`).
-- **Single HTML File with 404.html**: Replaced multiple subdirectory index.html files with a single `404.html` that GitHub Pages automatically serves for all non-existent paths, combined with path-based variant detection in JavaScript.
-- **Workflow Simplification**: Updated GitHub Actions workflow to deploy from `master` branch only with just index.html and 404.html.
+- **Single-Branch Deployment**: Refactored deployment strategy to use a single `master` branch with path-based variant detection. The application now deploys to three paths from one branch: `/dialogue-lab-v2/` (default: both modes), `/dialogue-lab-v2/practice-edition` (transformation only), and `/dialogue-lab-v2/simulation-lab` (simulation only).
+- **404.html Routing**: Implemented GitHub Pages 404.html fallback mechanism. A single `404.html` file in the repository root with `<base href="/dialogue-lab-v2/">` is automatically served by GitHub Pages for all non-existent paths (like `/practice-edition` and `/simulation-lab`), enabling clean URL paths without subdirectory index.html files.
+- **Path-Based Variant Detection**: Updated variant detection in `variants.js` to use full GitHub Pages path patterns (`/dialogue-lab-v2/practice-edition`, `/dialogue-lab-v2/simulation-lab`, `/dialogue-lab-v2/`) for reliable variant switching.
+- **Mode Initialization Fix**: Modified `initializeCurrentMode()` to always use the first mode from `CURRENT_VARIANT.modes`, ensuring practice edition loads transformation mode and simulation-lab loads simulation mode.
+- **Navigation Event Handling**: Added `popstate` event listener alongside existing `hashchange` listener in `app.js` to trigger page reload on path changes, ensuring variant detection runs correctly when users navigate between different URLs.
+- **Workflow Update**: Updated GitHub Actions workflow to deploy files to `/dialogue-lab-v2/` subdirectory and `404.html` to repository root, with `clean: false` to preserve the root-level 404.html file.
 
 ---
 

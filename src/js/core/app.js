@@ -94,3 +94,4 @@ window.handleSend = handleSend;
 window.loadContent = loadContent;
 
 window.addEventListener('hashchange', () => { location.reload(); });
+window.addEventListener('popstate', () => { location.reload(); });
