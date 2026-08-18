@@ -1,0 +1,48 @@
+name: Multi-Branch Deployment to GitHub Pages
+
+# Trigger only for the two product branches
+on:
+  push:
+    branches:
+      - main
+      - simulation-lab
+      - practice-edition
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Public Artifact Folder
+        run: |
+          mkdir -p public
+          cp index.html public/
+          cp -r src public/
+          cp -r scenarios public/
+          cp -r prompts public/
+          touch public/.nojekyll
+
+      - name: Determine Deployment Path
+        id: subpath
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "SUB_PATH=" >> $GITHUB_OUTPUT  # Leerer Pfad = Root
+          else
+            CLEAN_NAME=$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+            echo "SUB_PATH=$CLEAN_NAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: public
+          target-folder: ${{ steps.subpath.outputs.SUB_PATH }}
+          branch: gh-pages
+          clean: false
