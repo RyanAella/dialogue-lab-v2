@@ -42,10 +42,14 @@ export const CURRENT_VARIANT = (() => {
   // 1. Check hash first (for local development with VS Code/WebStorm)
   // Extract only the hash part, remove any query parameters added by IDE
   const hash = window.location.hash.split('#')[1]?.split('?')[0] || '';
-  for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
-    if (hash === config.hash) {
-      console.log('[VARIANT] Detected via hash:', key, '| hash:', hash, '| config.hash:', config.hash);
-      return { ...config, id: key };
+  
+  // Only check hash if it's not empty (non-default variants have explicit hash values)
+  if (hash) {
+    for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
+      if (hash === config.hash) {
+        console.log('[VARIANT] Detected via hash:', key, '| hash:', hash, '| config.hash:', config.hash);
+        return { ...config, id: key };
+      }
     }
   }
 
