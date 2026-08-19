@@ -5,12 +5,16 @@
 
 import { UI } from "../ui/ui.js";
 import { DataLogger } from "../services/dataLogger.js";
-import { APP_MODES } from "../core/config.js";
-import { switchToSimulationMode } from "../core/modeManager.js";
+import { APP_MODES, EXERCISE_TYPES, UI_TEXTS } from "../core/config.js";
+import { switchToSimulationMode, switchToTransformationMode } from "../core/modeManager.js";
+import { ScenarioService } from "../features/scenario.js";
 import { handleFeedback, closeFeedbackModal } from "../features/feedback.js";
 import { downloadCurrentTranscript } from "../features/export.js";
 import { STATE } from "../core/state.js";
 import { handleSend, handleNextExercise } from "./messageHandlers.js";
+import { CURRENT_VARIANT } from "../core/variants.js";
+import { initExerciseDropdown, initDropdown } from "../utils/dropdowns.js";
+import { loadContent } from "../services/contentLoader.js";
 
 /**
  * Registers all event listeners for core UI interactions.
@@ -40,9 +44,57 @@ export function setupEventListeners(handlers) {
     }
   });
 
-  // Scenario Selector
+  // Scenario Selector - for default variant, mode selector
   UI.elements.scenarioSelect.addEventListener("change", async (e) => {
     await DataLogger.endConversation();
+    
+    // For default variant: mode selector - update exercise dropdown based on mode
+    if (CURRENT_VARIANT.id === 'default' && CURRENT_VARIANT.modes.length > 1) {
+      const selectedMode = e.target.value;
+      const active = ScenarioService.getActive();
+      const previousId = (active && active.type === (selectedMode === "SIMULATION" ? EXERCISE_TYPES.SIMULATION : EXERCISE_TYPES.TRANSFORMATION)) ? active.id : null;
+      
+      if (selectedMode === "SIMULATION") {
+        STATE.currentMode = APP_MODES.SIMULATION;
+        UI.setModeBadge(APP_MODES.SIMULATION);
+        UI.updateSidebarVisibility(APP_MODES.SIMULATION);
+        
+        const simulationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.SIMULATION);
+        const selectedId = simulationExercises.length > 0 
+          ? (simulationExercises.some(ex => ex.id === previousId) ? previousId : simulationExercises[0].id)
+          : null;
+        
+        await initDropdown(EXERCISE_TYPES.SIMULATION, UI.elements.exerciseSelect, UI_TEXTS.input.chooseExercise, selectedId);
+        UI.updateInputUI(true, UI_TEXTS.input.chooseScenario);
+        document.getElementById("main-subtitle").textContent = UI_TEXTS.subtitles.roleplay;
+        
+        // Load the selected content directly
+        if (selectedId) {
+          await loadContent(selectedId);
+        }
+      } else if (selectedMode === "TRANSFORMATION") {
+        STATE.currentMode = APP_MODES.TRANSFORMATION;
+        UI.setModeBadge(APP_MODES.TRANSFORMATION);
+        UI.updateSidebarVisibility(APP_MODES.TRANSFORMATION);
+        
+        const transformationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.TRANSFORMATION);
+        const selectedId = transformationExercises.length > 0 
+          ? (transformationExercises.some(ex => ex.id === previousId) ? previousId : transformationExercises[0].id)
+          : null;
+        
+        await initDropdown(EXERCISE_TYPES.TRANSFORMATION, UI.elements.exerciseSelect, UI_TEXTS.input.chooseExercise, selectedId);
+        UI.updateInputUI(true, UI_TEXTS.input.chooseExercise);
+        document.getElementById("main-subtitle").textContent = "Wähle eine Übung aus, um zu starten.";
+        
+        // Load the selected content directly
+        if (selectedId) {
+          await loadContent(selectedId);
+        }
+      }
+      return;
+    }
+    
+    // For other variants: load content directly
     await loadContent(e.target.value);
   });
 

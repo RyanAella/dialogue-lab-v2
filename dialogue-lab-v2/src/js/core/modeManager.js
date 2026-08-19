@@ -9,9 +9,10 @@ import { APP_MODES, EXERCISE_TYPES, UI_TEXTS } from "./config.js";
 import { ScenarioService } from "../features/scenario.js";
 import { STATE, resetState, resetUI, resetSidebarButtons } from "./state.js";
 import { appendPartnerMessage, updateInputAndStatus, showBriefingError } from "../ui/uiHelpers.js";
-import { initScenarioDropdown, initExerciseDropdown } from "../utils/dropdowns.js";
+import { initScenarioDropdown, initExerciseDropdown, initModeSelectorDropdown, initDropdown } from "../utils/dropdowns.js";
 import { getTransformationProgressText } from "../utils/messageHandlers.js";
 import { CURRENT_VARIANT } from "./variants.js";
+import { loadContent } from "../services/contentLoader.js";
 
 /**
  * Resets the application state and UI when switching between different modes or scenarios.
@@ -73,13 +74,16 @@ export async function switchToRoleplayMode() {
   resetAppForMode(APP_MODES.ROLEPLAY);
   UI.updateInputUI(true, UI_TEXTS.input.chooseScenario);
 
-  await initScenarioDropdown();
-
   const simulationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.SIMULATION);
-  if (simulationExercises.length > 0) {
-    const exists = simulationExercises.some(ex => ex.id === previousId);
-    UI.elements.scenarioSelect.value = exists ? previousId : simulationExercises[0].id;
-    UI.elements.scenarioSelect.dispatchEvent(new Event("change"));
+  const selectedId = simulationExercises.length > 0 
+    ? (simulationExercises.some(ex => ex.id === previousId) ? previousId : simulationExercises[0].id)
+    : null;
+
+  await initScenarioDropdown(selectedId);
+  
+  // Load the selected content directly
+  if (selectedId) {
+    await loadContent(selectedId);
   } else {
     UI.updateStatus("idle", UI_TEXTS.errors.noSimulations);
   }
@@ -103,13 +107,16 @@ export async function switchToSimulationMode() {
   resetAppForMode(APP_MODES.SIMULATION);
   UI.updateInputUI(true, UI_TEXTS.input.chooseScenario);
 
-  await initScenarioDropdown();
-
   const simulationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.SIMULATION);
-  if (simulationExercises.length > 0) {
-    const exists = simulationExercises.some(ex => ex.id === previousId);
-    UI.elements.scenarioSelect.value = exists ? previousId : simulationExercises[0].id;
-    UI.elements.scenarioSelect.dispatchEvent(new Event("change"));
+  const selectedId = simulationExercises.length > 0 
+    ? (simulationExercises.some(ex => ex.id === previousId) ? previousId : simulationExercises[0].id)
+    : null;
+
+  await initScenarioDropdown(selectedId);
+  
+  // Load the selected content directly
+  if (selectedId) {
+    await loadContent(selectedId);
   } else {
     UI.updateStatus("idle", UI_TEXTS.errors.noSimulations);
   }
@@ -130,12 +137,16 @@ export async function switchToTransformationMode(exerciseId = "ich_botschaften_b
   resetAppForMode(APP_MODES.TRANSFORMATION);
   updateInputAndStatus(true, UI_TEXTS.input.chooseExercise, "idle", UI_TEXTS.status.transformationActive);
 
-  await initExerciseDropdown();
-
   const transformationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.TRANSFORMATION);
-  if (transformationExercises.length > 0) {
-    UI.elements.exerciseSelect.value = exerciseId || transformationExercises[0].id;
-    UI.elements.exerciseSelect.dispatchEvent(new Event("change"));
+  const selectedId = transformationExercises.length > 0 
+    ? (exerciseId || transformationExercises[0].id)
+    : null;
+
+  await initExerciseDropdown(selectedId);
+  
+  // Load the selected content directly
+  if (selectedId) {
+    await loadContent(selectedId);
   } else {
     updateInputAndStatus(true, UI_TEXTS.errors.noExercises, "idle", UI_TEXTS.errors.noTransformations);
   }
@@ -149,6 +160,34 @@ export async function switchToTransformationMode(exerciseId = "ich_botschaften_b
  * @async
  */
 export async function initializeCurrentMode() {
+  // For default variant with both modes: mode selector + simulation exercises
+  if (CURRENT_VARIANT.id === 'default' && CURRENT_VARIANT.modes.length > 1) {
+    await initModeSelectorDropdown();
+    
+    // Get first simulation exercise to pre-select
+    const simulationExercises = ScenarioService.getExercisesByType(EXERCISE_TYPES.SIMULATION);
+    const firstSimulationId = simulationExercises.length > 0 ? simulationExercises[0].id : null;
+    
+    await initDropdown(EXERCISE_TYPES.SIMULATION, UI.elements.exerciseSelect, UI_TEXTS.input.chooseExercise, firstSimulationId);
+    
+    // Set initial mode to first mode in variant
+    if (CURRENT_VARIANT.modes && CURRENT_VARIANT.modes.length > 0) {
+      STATE.currentMode = CURRENT_VARIANT.modes[0];
+    }
+    UI.setModeBadge(STATE.currentMode);
+    UI.updateSidebarVisibility(STATE.currentMode);
+    UI.updateInputUI(true, UI_TEXTS.input.chooseScenario);
+    document.getElementById("main-subtitle").textContent = UI_TEXTS.subtitles.roleplay;
+    updateInputAndStatus(true, UI_TEXTS.input.chooseScenario, "idle", UI_TEXTS.status.simulationActive);
+    
+    // Trigger the initial content load for the first selected exercise
+    if (firstSimulationId) {
+      await loadContent(firstSimulationId);
+    }
+    
+    return;
+  }
+  
   // Set STATE.currentMode based on variant's first mode if variant defines modes
   if (CURRENT_VARIANT.modes && CURRENT_VARIANT.modes.length > 0) {
     STATE.currentMode = CURRENT_VARIANT.modes[0];
@@ -159,8 +198,6 @@ export async function initializeCurrentMode() {
     await switchToTransformationMode();
   } else if (STATE.currentMode === APP_MODES.SIMULATION) {
     await switchToSimulationMode();
-  } else {
-    await switchToRoleplayMode();
   }
 }
 
