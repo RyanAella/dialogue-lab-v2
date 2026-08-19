@@ -15,19 +15,19 @@
 export const VARIANT_CONFIGS = {
   practice: {
     hash: 'practice',
-    pathPattern: '/practice-edition',
+    pathPattern: '/dialogue-lab-v2/practice-edition',
     exercisesFilter: (ex) => ex.type === "TRANSFORMATION",
     modes: ["transformation"]
   },
   simulation: {
     hash: 'simulation',
-    pathPattern: '/simulation-lab',
+    pathPattern: '/dialogue-lab-v2/simulation-lab',
     exercisesFilter: (ex) => ex.type === "SIMULATION",
     modes: ["simulation"]
   },
   default: {
     hash: '',
-    pathPattern: '/',
+    pathPattern: '/dialogue-lab-v2/',
     exercisesFilter: null,
     modes: ["simulation", "transformation"]
   }
