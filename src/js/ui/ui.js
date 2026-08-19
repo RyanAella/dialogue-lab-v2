@@ -2,6 +2,7 @@ import { Avatar } from "../features/avatar.js";
 import { Speech } from "../features/speech.js";
 import { Utils } from "../utils/utils.js";
 import { STATUS_CONFIGS, MESSAGE_STYLES, MODE_BADGE_CONFIG, DOM_ELEMENT_IDS, DOM_ELEMENT_ALIASES } from "../core/config.js";
+import { CURRENT_VARIANT } from "../core/variants.js";
 import "./windowHandlers.js";
 
 /**
@@ -72,6 +73,14 @@ export const UI = {
    * @todo Implement logic for transformation mode if needed.
    */
   updateSidebarVisibility(mode) {
+    // In default variant with both modes, always show both dropdowns
+    if (CURRENT_VARIANT.id === 'default' && CURRENT_VARIANT.modes.length > 1) {
+      this.elements.scenarioSection?.classList.remove("hidden");
+      this.elements.exerciseSection?.classList.remove("hidden");
+      return;
+    }
+
+    // Original logic for other variants
     const isTransformation = mode === "transformation";
     this.elements.scenarioSection?.classList.toggle("hidden", isTransformation);
     this.elements.exerciseSection?.classList.toggle("hidden", !isTransformation);

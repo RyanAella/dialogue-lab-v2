@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [0.32.4] - 2026-08-19
+
+### Fixed
+- **Dropdown Selection Visibility**: Selected exercise is now properly visible in the second dropdown after initial page load.
+- **Briefing & Character Display**: Task description (briefing) and character/avatar are now automatically loaded and displayed after initial load.
+- **Content Loading Reliability**: Replaced manual `change` event dispatching with direct `loadContent()` calls in `initializeCurrentMode()`, `switchTo*Mode()` functions, and mode selector change handler to ensure content loads reliably.
+- **Dropdown Pre-selection**: Enhanced `initDropdown()` to accept optional `selectedId` parameter, allowing exercises to be pre-selected during initialization.
+- **GitHub Pages Path Detection**: Updated `pathPattern` in `variants.js` from `/dialogue-lab-v2/practice-edition` to `/practice-edition` (and similar for simulation-lab) to correctly detect variants on GitHub Pages, where `window.location.pathname` is `/practice-edition` rather than `/dialogue-lab-v2/practice-edition`.
+
+---
+
 ## [0.32.3] - 2026-08-18
 
 ### Changed
