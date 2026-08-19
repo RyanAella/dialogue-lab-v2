@@ -47,7 +47,6 @@ export const CURRENT_VARIANT = (() => {
   if (hash) {
     for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
       if (hash === config.hash) {
-        console.log('[VARIANT] Detected via hash:', key, '| hash:', hash, '| config.hash:', config.hash);
         return { ...config, id: key };
       }
     }
@@ -55,18 +54,15 @@ export const CURRENT_VARIANT = (() => {
 
   // 2. Check path (for production on GitHub Pages)
   const path = window.location.pathname;
-  console.log('[VARIANT] Checking path:', path);
   
   // Check patterns in order: practice, simulation, then default
   for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
     if (config.pathPattern && path.includes(config.pathPattern)) {
-      console.log('[VARIANT] Detected via path:', key, '| pathPattern:', config.pathPattern, '| matched path:', path);
       return { ...config, id: key };
     }
   }
 
   // If no pattern matched, return default
-  console.log('[VARIANT] No pattern matched, falling back to default');
   return VARIANT_CONFIGS.default;
 })();
 

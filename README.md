@@ -39,25 +39,38 @@ Die Anwendung kombiniert ein statisches Frontend mit einem serverseitigen Proxy 
 
 ### Kern-Module (`src/js/`)
 
-| Modul             | Verantwortung                                                                              |
-| :---------------- | :----------------------------------------------------------------------------------------- |
-| **`app.js`**      | **Controller**: Orchestriert den Programmfluss und initialisiert die Services.             |
-| **`ui.js`**       | **View-Manager**: Verwaltet DOM-Elemente, Event-Listener und das Chat-Rendering.           |
-| **`avatar.js`**   | **Visuals**: Steuert das Multi-Layer-System, Animationen (Blinken) und Lippensynchronität. |
-| **`speech.js`**   | **Audio-Service**: Kapselt TTS (Sprachausgabe) und STT (Diktierfunktion).                  |
-| **`chat.js`**     | **State-Manager**: Hält die Gesprächshistorie und bereitet Transkripte vor.                |
-| **`scenario.js`** | **Data-Service**: Lädt Übungspools und verwaltet das aktive Szenario-State.                |
-| **`api.js`**      | **Network**: Handling der API-Anfragen mit integriertem Caching.                           |
-| **`utils.js`**    | **Helpers**: Statische Funktionen für Markdown-Parsing und Text-Bereinigung.               |
-| **`profiles.js`** | **Assets**: Konfiguration der Charakter-Pools und Grafik-Ebenen.                           |
+Die Anwendung folgt einer **modularen Ordnerstruktur** nach dem **Separation of Concerns** Prinzip:
+
+| Modul | Verantwortung |
+| :--- | :--- |
+| **`core/`** | Anwendungskern: `app.js` (Controller), `config.js` (Einstellungen), `state.js` (Zustand), `modeManager.js` (Modus-Verwaltung), `variants.js` (Varianten-Konfiguration) |
+| **`features/`** | Domänen-spezifische Module: `avatar.js`, `chat.js`, `scenario.js`, `speech.js`, `profiles.js`, `feedback.js`, `export.js` |
+| **`services/`** | Externe Services: `api.js`, `contentLoader.js`, `dataLogger.js` |
+| **`ui/`** | UI-Komponenten: `ui.js` (DOM-Manager), `uiHelpers.js`, `windowHandlers.js` |
+| **`utils/`** | Hilfsfunktionen: `dropdowns.js`, `eventListeners.js`, `messageHandlers.js`, `utils.js` |
 
 ### Daten & Inhalte
 
-- `src/data/exercises.json`: Der zentrale Katalog aller verfügbaren Simulationen.
+- `src/data/exercises.json`: Der zentrale Katalog aller verfügbaren Übungen.
 - `scenarios/`: Markdown-ähnliche Szenario-Beschreibungen und GUI-Instruktionen.
-- `prompts/`: Unterordner für KI-Prompts (`system/`, `partner/`, `mentor/`).
+- `prompts/`: Unterordner für KI-Prompts (`system/`, `partner/`, `mentor/`, `trainers/`).
 
-## 4. Szenarien und Konfiguration
+## 4. Varianten-System
+
+Die Anwendung unterstützt drei **Varianten**, die unterschiedliche Modi und Inhalte bieten:
+
+| Variante | Modus | Zielgruppe | URL (GitHub Pages) |
+|----------|-------|------------|-------------------|
+| **default** | Simulation + Transformation | Vollständige Erfahrung | `/` oder `/dialogue-lab-v2/` |
+| **practice** | Nur Transformation | Fokus auf Übungen | `/practice-edition` |
+| **simulation** | Nur Simulation | Fokus auf Rollenspiele | `/simulation-lab` |
+
+Die Variante wird automatisch aus der URL erkannt und steuert:
+- Welche Dropdowns sichtbar sind
+- Welche Übungen im Dropdown angezeigt werden
+- Welcher Modus standardmäßig aktiv ist
+
+## 5. Szenarien und Konfiguration
 
 Dieser Abschnitt beschreibt, wie die Inhalte für die Simulationen strukturiert und konfiguriert werden. Die App trennt strikt zwischen Code und Inhalt, um eine einfache Wartung und Erweiterung zu ermöglichen.
 
@@ -108,7 +121,7 @@ trainer_prompt: ich_botschaft_trainer
 short_instruction: Formuliere den Vorwurf in eine Ich-Botschaft um.
 ```
 
-## 5. Proxy-Setup & Sicherheit
+## 6. Proxy-Setup & Sicherheit
 
 Die Kommunikation erfolgt über einen PHP-Proxy, um den API-Key sicher zu verwahren.
 
@@ -121,20 +134,27 @@ Die Kommunikation erfolgt über einen PHP-Proxy, um den API-Key sicher zu verwah
 
 Das Skript empfängt den Payload vom Frontend, fügt den Authorization-Header hinzu und leitet die Anfrage an OpenAI weiter. (Eine Vorlage befindet sich im Dokumentations-Ordner).
 
-## 6. Deployment & Konfiguration
+## 7. Deployment & Konfiguration
 
 1. **Frontend:** Repository auf GitHub Pages hosten.
 2. **Proxy:** `chat.php` auf einem Webserver mit HTTPS-Support ablegen.
-3. **Konfiguration:** Die `PROXY_URL` in `src/js/config.js` an den Pfad deines Proxy-Skripts anpassen.
+3. **Konfiguration:** Die `PROXY_URL` in `src/js/core/config.js` an den Pfad deines Proxy-Skripts anpassen.
 
-### Multi-Branch Deployment
+### Single-Branch Deployment mit Varianten
 
-Jeder Push auf einen Branch löst ein automatisches Deployment aus:
+Die Anwendung nutzt ein **Single-Branch Deployment** mit **path-basierter Variante-Erkennung**:
 
-- **Main-Branch:** Hauptversion unter der Root-URL.
-- **Feature-Branches:** Werden automatisch in Unterverzeichnisse (z. B. `.../feature-xyz/`) bereitgestellt, was paralleles Testen ermöglicht.
+- **`/` oder `/dialogue-lab-v2/`** → Default-Variante (beide Modi: Simulation + Transformation)
+- **`/practice-edition`** → Practice-Variante (nur Transformation-Modus)
+- **`/simulation-lab`** → Simulation-Variante (nur Simulation-Modus)
 
-## 7. Neues Szenario hinzufügen
+Die Variante wird automatisch aus der URL erkannt:
+- **Lokal (Entwicklung):** Über Hash-Parameter (`#practice`, `#simulation`)
+- **Produktion (GitHub Pages):** Über Pfad (`/practice-edition`, `/simulation-lab`)
+
+**Hinweis:** GitHub Pages serviert für nicht existierende Pfade automatisch die `404.html` aus dem Repository-Root. Diese Datei enthält einen `<base href="/dialogue-lab-v2/">`-Tag, um alle Assets korrekt zu laden.
+
+## 8. Neues Szenario hinzufügen
 
 1. **Inhaltstyp wählen:** Entscheide, ob es eine **Simulation** (freies Gespräch) oder eine **Transformation** (Übung) ist.
 2. **Prompts anlegen:** 
@@ -143,7 +163,7 @@ Jeder Push auf einen Branch löst ein automatisches Deployment aus:
 3. **Dateien & Register:** Erstelle die `.txt`-Dateien in `scenarios/` und registriere die ID in `src/data/exercises.json`. Nutze für Transformationen die Keys `sourceFile` (Aussagen) und `instructionFile` (Briefing).
 4. **Avatar-Mapping:** Setze den `role_label` im META-Block der Szenario-Datei auf einen gültigen Key aus `profiles.js` (z.B. `Mitarbeiterin`), um das richtige Charakter-Set zu laden.
 
-## 8. Inhalte pflegen
+## 9. Inhalte pflegen
 
 ### Best Practices für Prompts
 
@@ -220,9 +240,24 @@ The application combines a static frontend with a server-side proxy (for API key
 
 > **Note:** A server-side proxy script like `chat.php` is **not necessarily part of this repository**. It can be stored separately on the server to ensure no secrets are committed to the repo.
 
-## 4. Scenarios and Configuration
+## 4. Variants System
 
-### 4.1 The `exercises.json`
+The application supports three **variants** offering different modes and content:
+
+| Variant | Mode | Target Audience | URL (GitHub Pages) |
+|---------|------|-----------------|-------------------|
+| **default** | Simulation + Transformation | Full experience | `/` or `/dialogue-lab-v2/` |
+| **practice** | Transformation only | Focus on exercises | `/practice-edition` |
+| **simulation** | Simulation only | Focus on roleplay | `/simulation-lab` |
+
+The variant is automatically detected from the URL and controls:
+- Which dropdowns are visible
+- Which exercises are shown in the dropdown
+- Which mode is active by default
+
+## 5. Scenarios and Configuration
+
+### 5.1 The `exercises.json`
 
 This file controls all available content and distinguishes between the types `SIMULATION` and `TRANSFORMATION`.
 
@@ -272,7 +307,7 @@ trainer_prompt: ich_botschaft_trainer
 short_instruction: Rephrase the accusation into an I-statement.
 ```
 
-## 5. Proxy Setup & Security
+## 6. Proxy Setup & Security
 
 Communication is handled via a PHP proxy to keep the API key secure.
 
@@ -285,20 +320,27 @@ Communication is handled via a PHP proxy to keep the API key secure.
 
 The script receives the payload from the frontend, adds the Authorization header, and forwards the request to OpenAI. (A template is located in the documentation folder).
 
-## 6. Deployment & Configuration
+## 7. Deployment & Configuration
 
 1.  **Frontend:** Host the repository on GitHub Pages.
 2.  **Proxy:** Place `chat.php` on a web server with HTTPS support.
-3.  **Configuration:** Update the `PROXY_URL` in `src/js/config.js` to the path of your proxy script.
+3.  **Configuration:** Update the `PROXY_URL` in `src/js/core/config.js` to the path of your proxy script.
 
-### Multi-Branch Deployment
+### Single-Branch Deployment with Variants
 
-Every push to a branch triggers an automated deployment:
+The application uses **single-branch deployment** with **path-based variant detection**:
 
-- **Main Branch:** Main version under the root URL.
-- **Feature Branches:** Automatically deployed to subdirectories (e.g., `.../feature-xyz/`), enabling parallel testing of features.
+- **`/` or `/dialogue-lab-v2/`** → Default variant (both modes: Simulation + Transformation)
+- **`/practice-edition`** → Practice variant (Transformation mode only)
+- **`/simulation-lab`** → Simulation variant (Simulation mode only)
 
-## 7. Adding a New Scenario
+The variant is automatically detected from the URL:
+- **Local (Development):** Via hash parameter (`#practice`, `#simulation`)
+- **Production (GitHub Pages):** Via path (`/practice-edition`, `/simulation-lab`)
+
+**Note:** GitHub Pages automatically serves the `404.html` from the repository root for non-existent paths. This file contains a `<base href="/dialogue-lab-v2/">` tag to correctly resolve all asset paths.
+
+## 8. Adding a New Scenario
 
 1. **Choose Type:** Determine if it's a **Simulation** (free dialogue) or a **Transformation** (exercise).
 2. **Create Prompts:** 
@@ -307,7 +349,7 @@ Every push to a branch triggers an automated deployment:
 3. **Files & Registration:** Create the `.txt` files in `scenarios/` and register the new ID in `src/data/exercises.json`. For transformations, use the keys `sourceFile` (statements) and `instructionFile` (briefing).
 4. **Avatar Mapping:** Set the `role_label` in the META block of your scenario file to match a key in `profiles.js` (e.g., `Mitarbeiterin`) to load the correct character set.
 
-## 8. Content Maintenance
+## 9. Content Maintenance
 
 ### Best Practices for Prompts
 
