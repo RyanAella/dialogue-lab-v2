@@ -160,6 +160,8 @@ export async function switchToTransformationMode(exerciseId = "ich_botschaften_b
  * @async
  */
 export async function initializeCurrentMode() {
+  console.log('[MODE] Initializing current mode. Variant:', CURRENT_VARIANT.id, '| Modes:', CURRENT_VARIANT.modes);
+  
   // For default variant with both modes: mode selector + simulation exercises
   if (CURRENT_VARIANT.id === 'default' && CURRENT_VARIANT.modes.length > 1) {
     await initModeSelectorDropdown();

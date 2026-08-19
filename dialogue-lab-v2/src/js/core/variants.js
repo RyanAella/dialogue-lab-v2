@@ -43,20 +43,26 @@ export const CURRENT_VARIANT = (() => {
   // Extract only the hash part, remove any query parameters added by IDE
   const hash = window.location.hash.split('#')[1]?.split('?')[0] || '';
   for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
-    if (hash === config.hash) return { ...config, id: key };
+    if (hash === config.hash) {
+      console.log('[VARIANT] Detected via hash:', key, '| hash:', hash, '| config.hash:', config.hash);
+      return { ...config, id: key };
+    }
   }
 
   // 2. Check path (for production on GitHub Pages)
   const path = window.location.pathname;
+  console.log('[VARIANT] Checking path:', path);
   
   // Check patterns in order: practice, simulation, then default
   for (const [key, config] of Object.entries(VARIANT_CONFIGS)) {
     if (config.pathPattern && path.includes(config.pathPattern)) {
+      console.log('[VARIANT] Detected via path:', key, '| pathPattern:', config.pathPattern, '| matched path:', path);
       return { ...config, id: key };
     }
   }
 
   // If no pattern matched, return default
+  console.log('[VARIANT] No pattern matched, falling back to default');
   return VARIANT_CONFIGS.default;
 })();
 
