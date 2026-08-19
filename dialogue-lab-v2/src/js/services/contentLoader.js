@@ -21,7 +21,6 @@ import { getTransformationProgressText } from "../utils/messageHandlers.js";
  * @param {string} exerciseId - The ID of the content to load.
  */
 export async function loadContent(exerciseId) {
-  console.log('[CONTENT] Loading exercise:', exerciseId);
   UI.updateStatus("loading", UI_TEXTS.status.loading);
   UI.setBriefingLoading(true);
   UI.elements.chatWindow.innerHTML = "";
